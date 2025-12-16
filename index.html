@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shape Spa - Learn & Practice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'xs': '375px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Fredoka', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .tab-btn { 
+            transition: all 0.2s; 
+        }
+        .tab-btn.active { 
+            background: white; 
+            color: #4f46e5; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .shape-btn, .answer-btn { 
+            transition: transform 0.15s, box-shadow 0.15s; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .shape-btn:active, .answer-btn:active { 
+            transform: scale(0.97); 
+        }
+        
+        .fade-in { 
+            animation: fadeIn 0.3s ease-out; 
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        /* Ensure SVGs are responsive */
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Responsive text scaling */
+        @media (max-width: 374px) {
+            .text-responsive-xl { font-size: 1.25rem; }
+            .text-responsive-2xl { font-size: 1.5rem; }
+            .text-responsive-3xl { font-size: 1.75rem; }
+            .text-responsive-4xl { font-size: 2rem; }
+        }
+        @media (min-width: 375px) and (max-width: 639px) {
+            .text-responsive-xl { font-size: 1.25rem; }
+            .text-responsive-2xl { font-size: 1.5rem; }
+            .text-responsive-3xl { font-size: 1.875rem; }
+            .text-responsive-4xl { font-size: 2.25rem; }
+        }
+        @media (min-width: 640px) {
+            .text-responsive-xl { font-size: 1.5rem; }
+            .text-responsive-2xl { font-size: 1.875rem; }
+            .text-responsive-3xl { font-size: 2.25rem; }
+            .text-responsive-4xl { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-blue-50 to-indigo-100 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md border-b-4 border-indigo-200 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <h1 class="text-xl sm:text-2xl font-bold text-indigo-600 text-center mb-2 sm:mb-3">🧘 Shape Spa 🧘</h1>
+            
+            <!-- Tab Navigation -->
+            <div class="flex rounded-xl bg-indigo-100 p-1 gap-1">
+                <button id="tab-flashcards" class="tab-btn active flex-1 py-2 px-2 sm:px-4 rounded-lg font-bold text-xs sm:text-sm" onclick="switchTab('flashcards')">
+                    <span class="hidden xs:inline">🎴 </span>Flashcards
+                </button>
+                <button id="tab-quiz" class="tab-btn flex-1 py-2 px-2 sm:px-4 rounded-lg font-bold text-xs sm:text-sm text-indigo-400" onclick="switchTab('quiz')">
+                    <span class="hidden xs:inline">🧠 </span>Quiz
+                </button>
+                <button id="tab-reference" class="tab-btn flex-1 py-2 px-2 sm:px-4 rounded-lg font-bold text-xs sm:text-sm text-indigo-400" onclick="switchTab('reference')">
+                    <span class="hidden xs:inline">📚 </span>Study
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+
+        <!-- ==================== FLASHCARDS TAB ==================== -->
+        <section id="section-flashcards" class="fade-in">
+            
+            <!-- Progress indicator -->
+            <div class="flex justify-between items-center mb-3 text-sm text-gray-500">
+                <span>Shapes Practice</span>
+                <span id="fc-progress" class="bg-indigo-100 px-3 py-1 rounded-full text-indigo-600 font-medium">1 / 10</span>
+            </div>
+            
+            <!-- Question Card -->
+            <div class="bg-white rounded-2xl shadow-xl border-4 border-indigo-200 p-4 sm:p-6 mb-4">
+                <p class="text-gray-400 font-bold text-xs sm:text-sm uppercase tracking-wider mb-1 text-center">Find the...</p>
+                <h2 id="fc-target-name" class="text-responsive-4xl font-bold text-indigo-600 mb-3 sm:mb-4 text-center">...</h2>
+                
+                <div class="bg-green-50 border-4 border-green-300 rounded-xl p-3 sm:p-4">
+                    <p class="text-green-700 text-xs font-bold uppercase mb-1">💡 What is it?</p>
+                    <p id="fc-target-hint" class="text-base sm:text-lg font-medium text-green-800 mb-2 sm:mb-3">...</p>
+                    <p class="text-green-700 text-xs font-bold uppercase mb-1">🧠 Remember:</p>
+                    <p id="fc-target-memory" class="text-base sm:text-lg font-medium text-green-800">...</p>
+                </div>
+            </div>
+
+            <!-- Feedback -->
+            <div id="fc-feedback" class="text-center mb-3 sm:mb-4 h-8 sm:h-10 flex items-center justify-center">
+                <span id="fc-feedback-text" class="text-lg sm:text-xl font-bold"></span>
+            </div>
+
+            <!-- Shape Grid -->
+            <div id="fc-grid" class="grid grid-cols-2 gap-2 sm:gap-4"></div>
+        </section>
+
+        <!-- ==================== QUIZ TAB ==================== -->
+        <section id="section-quiz" class="hidden fade-in">
+            
+            <!-- Quiz Question Card -->
+            <div class="bg-white rounded-2xl shadow-xl border-4 border-purple-200 p-4 sm:p-6 mb-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
+                    <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
+                        Question <span id="quiz-num">1</span>
+                    </span>
+                    <span class="text-gray-400 text-xs sm:text-sm">
+                        Cycle: <span id="quiz-cycle">1</span> | Remaining: <span id="quiz-remaining">30</span>
+                    </span>
+                </div>
+                
+                <h2 id="quiz-question" class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-3 sm:mb-4 text-center leading-snug">...</h2>
+                
+                <!-- Visual Aid Area -->
+                <div id="quiz-visual" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-3 sm:mb-4 min-h-[80px] sm:min-h-[120px]">
+                    <!-- SVGs injected here -->
+                </div>
+            </div>
+
+            <!-- Answer Options -->
+            <div id="quiz-options" class="grid grid-cols-1 gap-2 sm:gap-3 mb-4"></div>
+
+            <!-- Detailed Feedback -->
+            <div id="quiz-feedback" class="hidden bg-white rounded-2xl shadow-lg border-4 p-4 sm:p-5 mb-4">
+                <div id="quiz-feedback-header" class="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <span id="quiz-feedback-icon" class="text-2xl sm:text-3xl"></span>
+                    <span id="quiz-feedback-title" class="text-lg sm:text-xl font-bold"></span>
+                </div>
+                <div id="quiz-feedback-explanation" class="text-sm sm:text-base text-gray-700 leading-relaxed"></div>
+                <div id="quiz-feedback-visual" class="mt-3 sm:mt-4 flex flex-wrap justify-center gap-2 sm:gap-4"></div>
+                <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="mt-4 sm:mt-5 w-full bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 text-white font-bold py-3 sm:py-4 px-6 rounded-xl text-base sm:text-lg transition-colors">
+                    Next Question →
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== REFERENCE TAB ==================== -->
+        <section id="section-reference" class="hidden fade-in">
+            
+            <!-- Vocabulary Section -->
+            <div class="bg-white rounded-2xl shadow-xl border-4 border-yellow-200 p-4 sm:p-5 mb-4 sm:mb-5">
+                <h2 class="text-lg sm:text-xl font-bold text-yellow-700 mb-3 sm:mb-4 flex items-center gap-2">📖 Important Words</h2>
+                
+                <div class="space-y-2 sm:space-y-3">
+                    <div class="bg-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-yellow-200">
+                        <h3 class="font-bold text-yellow-800 text-base sm:text-lg">Side</h3>
+                        <p class="text-sm sm:text-base text-gray-700">A straight line that makes part of a shape. Count the sides to help name shapes!</p>
+                        <div class="mt-2 flex flex-wrap gap-2 sm:gap-4 items-center">
+                            <svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
+                                <polygon points="50,15 85,80 15,80" fill="#ffeaa7" stroke="black" stroke-width="3"/>
+                                <line x1="50" y1="15" x2="85" y2="80" stroke="red" stroke-width="5"/>
+                            </svg>
+                            <span class="text-xs sm:text-sm text-gray-600">The red line is ONE side</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-yellow-200">
+                        <h3 class="font-bold text-yellow-800 text-base sm:text-lg">Vertex (Corner)</h3>
+                        <p class="text-sm sm:text-base text-gray-700">The point where two sides meet. The plural is "vertices."</p>
+                        <div class="mt-2 flex flex-wrap gap-2 sm:gap-4 items-center">
+                            <svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
+                                <rect x="20" y="20" width="60" height="60" fill="#0984e3" stroke="black" stroke-width="3"/>
+                                <circle cx="20" cy="20" r="8" fill="red"/>
+                                <circle cx="80" cy="20" r="8" fill="red"/>
+                                <circle cx="80" cy="80" r="8" fill="red"/>
+                                <circle cx="20" cy="80" r="8" fill="red"/>
+                            </svg>
+                            <span class="text-xs sm:text-sm text-gray-600">Red dots = 4 vertices</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-yellow-200">
+                        <h3 class="font-bold text-yellow-800 text-base sm:text-lg">Right Angle (Square Corner)</h3>
+                        <p class="text-sm sm:text-base text-gray-700">An angle that makes a perfect "L" shape - exactly 90 degrees.</p>
+                        <div class="mt-2 flex flex-wrap gap-2 sm:gap-4 items-center">
+                            <svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
+                                <line x1="20" y1="80" x2="20" y2="20" stroke="black" stroke-width="4"/>
+                                <line x1="20" y1="80" x2="80" y2="80" stroke="black" stroke-width="4"/>
+                                <rect x="20" y="60" width="20" height="20" fill="none" stroke="red" stroke-width="3"/>
+                            </svg>
+                            <span class="text-xs sm:text-sm text-gray-600">The red square shows a right angle</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-yellow-200">
+                        <h3 class="font-bold text-yellow-800 text-base sm:text-lg">Parallel Lines</h3>
+                        <p class="text-sm sm:text-base text-gray-700">Lines that go the same direction and NEVER touch. Like train tracks!</p>
+                        <div class="mt-2 flex flex-wrap gap-2 sm:gap-4 items-center">
+                            <svg viewBox="0 0 100 80" class="w-16 h-12 sm:w-24 sm:h-16 flex-shrink-0">
+                                <line x1="10" y1="25" x2="90" y2="25" stroke="blue" stroke-width="4"/>
+                                <line x1="10" y1="55" x2="90" y2="55" stroke="blue" stroke-width="4"/>
+                            </svg>
+                            <span class="text-xs sm:text-sm text-gray-600">These lines stay the same distance apart</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 rounded-xl p-3 sm:p-4 border-2 border-yellow-200">
+                        <h3 class="font-bold text-yellow-800 text-base sm:text-lg">Equal Sides</h3>
+                        <p class="text-sm sm:text-base text-gray-700">Sides that have the exact same length.</p>
+                        <div class="mt-2 flex flex-wrap gap-2 sm:gap-4 items-center">
+                            <svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
+                                <rect x="20" y="20" width="60" height="60" fill="#00b894" stroke="black" stroke-width="3"/>
+                                <line x1="45" y1="20" x2="55" y2="20" stroke="white" stroke-width="3"/>
+                                <line x1="45" y1="80" x2="55" y2="80" stroke="white" stroke-width="3"/>
+                                <line x1="20" y1="45" x2="20" y2="55" stroke="white" stroke-width="3"/>
+                                <line x1="80" y1="45" x2="80" y2="55" stroke="white" stroke-width="3"/>
+                            </svg>
+                            <span class="text-xs sm:text-sm text-gray-600">White marks = all sides equal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shape Reference Cards -->
+            <div class="bg-white rounded-2xl shadow-xl border-4 border-blue-200 p-4 sm:p-5 mb-4 sm:mb-5">
+                <h2 class="text-lg sm:text-xl font-bold text-blue-700 mb-3 sm:mb-4 flex items-center gap-2">🔷 All Shapes</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" id="reference-shapes"></div>
+            </div>
+
+            <!-- Number Prefixes -->
+            <div class="bg-white rounded-2xl shadow-xl border-4 border-green-200 p-4 sm:p-5">
+                <h2 class="text-lg sm:text-xl font-bold text-green-700 mb-3 sm:mb-4 flex items-center gap-2">🔢 Number Prefixes</h2>
+                <p class="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">These word parts tell you how many sides:</p>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">TRI</div>
+                        <div class="text-lg sm:text-xl">= 3</div>
+                        <div class="text-xs text-gray-500 mt-1">tricycle</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">QUAD</div>
+                        <div class="text-lg sm:text-xl">= 4</div>
+                        <div class="text-xs text-gray-500 mt-1">quad bike</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">PENTA</div>
+                        <div class="text-lg sm:text-xl">= 5</div>
+                        <div class="text-xs text-gray-500 mt-1">Pentagon</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">HEXA</div>
+                        <div class="text-lg sm:text-xl">= 6</div>
+                        <div class="text-xs text-gray-500 mt-1">honeycomb</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">HEPTA</div>
+                        <div class="text-lg sm:text-xl">= 7</div>
+                        <div class="text-xs text-gray-500 mt-1">week days</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">OCTA</div>
+                        <div class="text-lg sm:text-xl">= 8</div>
+                        <div class="text-xs text-gray-500 mt-1">octopus 🐙</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">NONA</div>
+                        <div class="text-lg sm:text-xl">= 9</div>
+                        <div class="text-xs text-gray-500 mt-1">nonagon</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2 sm:p-3 text-center border-2 border-green-200">
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">DECA</div>
+                        <div class="text-lg sm:text-xl">= 10</div>
+                        <div class="text-xs text-gray-500 mt-1">decade</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // ==================== SHAPE DATA ====================
+        const shapes = [
+            {
+                id: 'triangle', name: 'Triangle', sides: 3, vertices: 3,
+                hint: 'I have 3 sides and 3 corners.',
+                memory: 'TRI means 3! Like a TRI-cycle has 3 wheels.',
+                color: '#ffeaa7',
+                svg: '<polygon points="50,15 85,80 15,80" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['3 sides', '3 vertices', 'angles = 180°']
+            },
+            {
+                id: 'quadrilateral', name: 'Quadrilateral', sides: 4, vertices: 4,
+                hint: 'Any shape with exactly 4 sides and 4 corners.',
+                memory: 'QUAD means 4! Like a QUAD bike has 4 wheels.',
+                color: '#a29bfe',
+                svg: '<polygon points="20,20 80,10 90,80 10,90" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['4 sides', '4 vertices', 'angles = 360°']
+            },
+            {
+                id: 'rectangle', name: 'Rectangle', sides: 4, vertices: 4,
+                hint: 'I have 4 sides with 4 right angles. Opposite sides are equal.',
+                memory: 'RECT sounds like RIGHT - it has RIGHT angles!',
+                color: '#0984e3',
+                svg: '<rect x="15" y="30" width="70" height="40" fill="currentColor" stroke="black" stroke-width="3"/>',
+                properties: ['4 sides', '4 right angles', 'opposite sides equal']
+            },
+            {
+                id: 'square', name: 'Square', sides: 4, vertices: 4,
+                hint: 'I have 4 EQUAL sides and 4 right angles.',
+                memory: 'All sides are the SAME - perfectly equal!',
+                color: '#00b894',
+                svg: '<rect x="20" y="20" width="60" height="60" fill="currentColor" stroke="black" stroke-width="3"/>',
+                properties: ['4 equal sides', '4 right angles', 'special rectangle']
+            },
+            {
+                id: 'rhombus', name: 'Rhombus', sides: 4, vertices: 4,
+                hint: 'I have 4 equal sides but NO right angles. I look like a diamond!',
+                memory: 'Think DIAMOND 💎 - a tilted square!',
+                color: '#55efc4',
+                svg: '<polygon points="50,10 80,50 50,90 20,50" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['4 equal sides', 'no right angles', 'diamond shape']
+            },
+            {
+                id: 'trapezoid', name: 'Trapezoid', sides: 4, vertices: 4,
+                hint: 'I have 4 sides. Only ONE pair of sides are parallel.',
+                memory: 'Looks like a TRAP or table top!',
+                color: '#e84393',
+                svg: '<polygon points="30,25 70,25 90,75 10,75" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['4 sides', '1 pair parallel', 'like a table']
+            },
+            {
+                id: 'parallelogram', name: 'Parallelogram', sides: 4, vertices: 4,
+                hint: 'I have 4 sides. BOTH pairs of opposite sides are parallel and equal.',
+                memory: 'PARALLEL is in the name!',
+                color: '#fdcb6e',
+                svg: '<polygon points="25,20 85,20 75,80 15,80" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['4 sides', '2 pairs parallel', 'opposite sides equal']
+            },
+            {
+                id: 'pentagon', name: 'Pentagon', sides: 5, vertices: 5,
+                hint: 'I have 5 sides and 5 corners.',
+                memory: 'PENTA means 5! Like the Pentagon building.',
+                color: '#6c5ce7',
+                svg: '<polygon points="50,10 90,40 75,85 25,85 10,40" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['5 sides', '5 vertices', 'angles = 540°']
+            },
+            {
+                id: 'hexagon', name: 'Hexagon', sides: 6, vertices: 6,
+                hint: 'I have 6 sides and 6 corners.',
+                memory: 'HEXA means 6! Honeycomb 🍯 cells are hexagons.',
+                color: '#d63031',
+                svg: '<polygon points="30,10 70,10 90,50 70,90 30,90 10,50" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['6 sides', '6 vertices', 'honeycomb shape']
+            },
+            {
+                id: 'octagon', name: 'Octagon', sides: 8, vertices: 8,
+                hint: 'I have 8 sides and 8 corners.',
+                memory: 'OCTA means 8! Stop signs 🛑 are octagons!',
+                color: '#fab1a0',
+                svg: '<polygon points="30,10 70,10 90,30 90,70 70,90 30,90 10,70 10,30" fill="currentColor" stroke="black" stroke-width="3" stroke-linejoin="round"/>',
+                properties: ['8 sides', '8 vertices', 'stop sign shape']
+            }
+        ];
+
+        // ==================== QUIZ QUESTIONS ====================
+        const quizQuestions = [
+            {
+                question: "What do we call a corner of a shape where two sides meet?",
+                options: ["Vertex", "Side", "Parallel", "Angle"],
+                correctAnswer: "Vertex",
+                explanation: "A <strong>vertex</strong> is the point where two sides of a shape meet. The plural is 'vertices.' Think of it as a corner!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="50,15 85,80 15,80" fill="#ffeaa7" stroke="black" stroke-width="3"/><circle cx="50" cy="15" r="8" fill="red"/><circle cx="85" cy="80" r="8" fill="red"/><circle cx="15" cy="80" r="8" fill="red"/></svg><span class="text-xs sm:text-sm text-gray-600">Red dots = vertices!</span>`
+            },
+            {
+                question: "What is a RIGHT ANGLE?",
+                options: ["A perfect L-shape corner (90°)", "Any corner", "A pointy corner", "A round corner"],
+                correctAnswer: "A perfect L-shape corner (90°)",
+                explanation: "A <strong>right angle</strong> measures exactly 90 degrees - it makes a perfect 'L' shape. You find them in rectangles, squares, book corners, and doors!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><line x1="20" y1="80" x2="20" y2="20" stroke="black" stroke-width="4"/><line x1="20" y1="80" x2="80" y2="80" stroke="black" stroke-width="4"/><rect x="20" y="60" width="20" height="20" fill="none" stroke="red" stroke-width="3"/><text x="55" y="50" font-size="14" fill="red">90°</text></svg>`
+            },
+            {
+                question: "What does PARALLEL mean?",
+                options: ["Lines that never touch and stay the same distance apart", "Lines that cross each other", "Lines that are curved", "Lines of different lengths"],
+                correctAnswer: "Lines that never touch and stay the same distance apart",
+                explanation: "<strong>Parallel lines</strong> go in the same direction and stay the same distance apart forever - they NEVER touch! Think of train tracks!",
+                visual: `<svg viewBox="0 0 120 80" class="w-28 h-16 sm:w-32 sm:h-20"><line x1="10" y1="25" x2="110" y2="25" stroke="blue" stroke-width="4"/><line x1="10" y1="55" x2="110" y2="55" stroke="blue" stroke-width="4"/><line x1="30" y1="25" x2="30" y2="55" stroke="red" stroke-width="2" stroke-dasharray="4"/><line x1="90" y1="25" x2="90" y2="55" stroke="red" stroke-width="2" stroke-dasharray="4"/></svg>`
+            },
+            {
+                question: "What is a SIDE of a shape?",
+                options: ["A straight line that forms part of the shape", "A corner of the shape", "The inside of the shape", "The color of the shape"],
+                correctAnswer: "A straight line that forms part of the shape",
+                explanation: "A <strong>side</strong> is one of the straight lines that makes up a shape. Counting sides helps us name shapes!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="50,15 85,80 15,80" fill="#ffeaa7" stroke="black" stroke-width="2"/><line x1="50" y1="15" x2="85" y2="80" stroke="red" stroke-width="5"/></svg><span class="text-xs sm:text-sm text-gray-600">Red = 1 side</span>`
+            },
+            {
+                question: "What does EQUAL SIDES mean?",
+                options: ["Sides that are the same length", "Sides that are parallel", "Sides that are different lengths", "Sides that make right angles"],
+                correctAnswer: "Sides that are the same length",
+                explanation: "When sides are <strong>equal</strong>, they have the exact same length. A square has 4 equal sides!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><rect x="20" y="20" width="60" height="60" fill="#00b894" stroke="black" stroke-width="3"/><text x="50" y="15" text-anchor="middle" font-size="10">3cm</text><text x="50" y="95" text-anchor="middle" font-size="10">3cm</text></svg>`
+            },
+            {
+                question: "The prefix TRI- means what number?",
+                options: ["3", "4", "5", "6"],
+                correctAnswer: "3",
+                explanation: "<strong>TRI-</strong> means <strong>3</strong>! That's why a TRI-angle has 3 sides, a TRI-cycle has 3 wheels!",
+                visual: `<div class="flex gap-2 sm:gap-3 items-center"><svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16"><polygon points="50,15 85,80 15,80" fill="#ffeaa7" stroke="black" stroke-width="3"/></svg><span class="text-xl sm:text-2xl">🚲</span></div>`
+            },
+            {
+                question: "The prefix QUAD- means what number?",
+                options: ["4", "3", "5", "8"],
+                correctAnswer: "4",
+                explanation: "<strong>QUAD-</strong> means <strong>4</strong>! A QUAD-rilateral has 4 sides. A QUAD bike has 4 wheels!",
+                visual: `<svg viewBox="0 0 100 100" class="w-16 h-16 sm:w-20 sm:h-20"><polygon points="20,20 80,10 90,80 10,90" fill="#a29bfe" stroke="black" stroke-width="3"/></svg>`
+            },
+            {
+                question: "The prefix PENTA- means what number?",
+                options: ["5", "4", "6", "7"],
+                correctAnswer: "5",
+                explanation: "<strong>PENTA-</strong> means <strong>5</strong>! A PENTA-gon has 5 sides. The Pentagon building has 5 sides!",
+                visual: `<svg viewBox="0 0 100 100" class="w-16 h-16 sm:w-20 sm:h-20"><polygon points="50,10 90,40 75,85 25,85 10,40" fill="#6c5ce7" stroke="black" stroke-width="3"/></svg>`
+            },
+            {
+                question: "The prefix HEXA- means what number?",
+                options: ["6", "5", "7", "8"],
+                correctAnswer: "6",
+                explanation: "<strong>HEXA-</strong> means <strong>6</strong>! A HEXA-gon has 6 sides. Honeycomb cells are hexagons! 🍯",
+                visual: `<svg viewBox="0 0 100 100" class="w-16 h-16 sm:w-20 sm:h-20"><polygon points="30,10 70,10 90,50 70,90 30,90 10,50" fill="#d63031" stroke="black" stroke-width="3"/></svg><span class="text-2xl sm:text-3xl">🍯</span>`
+            },
+            {
+                question: "The prefix OCTA- means what number?",
+                options: ["8", "6", "7", "10"],
+                correctAnswer: "8",
+                explanation: "<strong>OCTA-</strong> means <strong>8</strong>! An OCTA-gon has 8 sides (like a stop sign!). An OCTO-pus has 8 arms!",
+                visual: `<svg viewBox="0 0 100 100" class="w-16 h-16 sm:w-20 sm:h-20"><polygon points="30,10 70,10 90,30 90,70 70,90 30,90 10,70 10,30" fill="#fab1a0" stroke="black" stroke-width="3"/></svg><span class="text-2xl sm:text-3xl">🐙🛑</span>`
+            },
+            {
+                question: "Which shape has exactly 3 sides?",
+                options: ["Triangle", "Square", "Pentagon", "Quadrilateral"],
+                correctAnswer: "Triangle",
+                explanation: "A <strong>triangle</strong> has exactly 3 sides and 3 vertices. TRI- means 3!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="50,15 85,80 15,80" fill="#ffeaa7" stroke="black" stroke-width="3"/></svg>`
+            },
+            {
+                question: "What makes a shape a QUADRILATERAL?",
+                options: ["It has exactly 4 sides", "It has right angles", "It has equal sides", "It is a square"],
+                correctAnswer: "It has exactly 4 sides",
+                explanation: "A <strong>quadrilateral</strong> is ANY shape with exactly 4 sides. Squares, rectangles, trapezoids are ALL quadrilaterals!",
+                visual: `<div class="flex flex-wrap gap-1 sm:gap-2 justify-center"><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><rect x="20" y="20" width="60" height="60" fill="#00b894" stroke="black" stroke-width="3"/></svg><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><rect x="15" y="30" width="70" height="40" fill="#0984e3" stroke="black" stroke-width="3"/></svg><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><polygon points="50,10 80,50 50,90 20,50" fill="#55efc4" stroke="black" stroke-width="3"/></svg><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><polygon points="30,25 70,25 90,75 10,75" fill="#e84393" stroke="black" stroke-width="3"/></svg></div>`
+            },
+            {
+                question: "What is special about a SQUARE?",
+                options: ["4 equal sides AND 4 right angles", "Just 4 sides", "Just 4 right angles", "4 parallel sides"],
+                correctAnswer: "4 equal sides AND 4 right angles",
+                explanation: "A <strong>square</strong> has BOTH 4 equal sides AND 4 right angles. It's like a perfect rectangle!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><rect x="20" y="20" width="60" height="60" fill="#00b894" stroke="black" stroke-width="3"/><rect x="20" y="20" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="68" y="20" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="20" y="68" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="68" y="68" width="12" height="12" fill="none" stroke="red" stroke-width="2"/></svg>`
+            },
+            {
+                question: "What is special about a RECTANGLE?",
+                options: ["4 sides with 4 right angles, opposite sides equal", "4 equal sides", "No right angles", "Only 2 sides are equal"],
+                correctAnswer: "4 sides with 4 right angles, opposite sides equal",
+                explanation: "A <strong>rectangle</strong> has 4 right angles and opposite sides are equal and parallel!",
+                visual: `<svg viewBox="0 0 120 80" class="w-24 h-16 sm:w-28 sm:h-20"><rect x="10" y="10" width="100" height="60" fill="#0984e3" stroke="black" stroke-width="3"/><rect x="10" y="10" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="98" y="10" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="10" y="58" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="98" y="58" width="12" height="12" fill="none" stroke="red" stroke-width="2"/></svg>`
+            },
+            {
+                question: "How is a RHOMBUS different from a square?",
+                options: ["A rhombus doesn't have right angles", "A rhombus has 5 sides", "A rhombus has unequal sides", "They are the same"],
+                correctAnswer: "A rhombus doesn't have right angles",
+                explanation: "A <strong>rhombus</strong> has 4 equal sides (like a square!), BUT its corners are NOT right angles. Think diamond! 💎",
+                visual: `<div class="flex gap-2 sm:gap-4 items-center"><div class="text-center"><svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16"><rect x="25" y="25" width="50" height="50" fill="#00b894" stroke="black" stroke-width="3"/></svg><div class="text-xs">Square</div></div><div class="text-lg sm:text-2xl">→</div><div class="text-center"><svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16"><polygon points="50,10 80,50 50,90 20,50" fill="#55efc4" stroke="black" stroke-width="3"/></svg><div class="text-xs">Rhombus</div></div></div>`
+            },
+            {
+                question: "What is a TRAPEZOID?",
+                options: ["A shape with exactly ONE pair of parallel sides", "A shape with 2 pairs of parallel sides", "A shape with no parallel sides", "A shape with 5 sides"],
+                correctAnswer: "A shape with exactly ONE pair of parallel sides",
+                explanation: "A <strong>trapezoid</strong> has 4 sides, but only ONE pair of opposite sides are parallel. It looks like a table top!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="30,25 70,25 90,75 10,75" fill="#e84393" stroke="black" stroke-width="3"/><line x1="30" y1="20" x2="70" y2="20" stroke="blue" stroke-width="3"/><line x1="10" y1="80" x2="90" y2="80" stroke="blue" stroke-width="3"/></svg>`
+            },
+            {
+                question: "What is a PARALLELOGRAM?",
+                options: ["A shape with 2 pairs of parallel sides", "A shape with 1 pair of parallel sides", "A shape with no parallel sides", "A shape with 5 sides"],
+                correctAnswer: "A shape with 2 pairs of parallel sides",
+                explanation: "A <strong>parallelogram</strong> has BOTH pairs of opposite sides parallel AND equal. PARALLEL-ogram!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="25,20 85,20 75,80 15,80" fill="#fdcb6e" stroke="black" stroke-width="3"/><line x1="25" y1="15" x2="85" y2="15" stroke="blue" stroke-width="3"/><line x1="15" y1="85" x2="75" y2="85" stroke="blue" stroke-width="3"/></svg>`
+            },
+            {
+                question: "Which shape looks like a stop sign?",
+                options: ["Octagon", "Hexagon", "Pentagon", "Rectangle"],
+                correctAnswer: "Octagon",
+                explanation: "A stop sign is an <strong>octagon</strong> - it has 8 sides! OCTA- means 8.",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="30,10 70,10 90,30 90,70 70,90 30,90 10,70 10,30" fill="#ff0000" stroke="white" stroke-width="4"/><text x="50" y="58" text-anchor="middle" font-size="16" fill="white" font-weight="bold">STOP</text></svg>`
+            },
+            {
+                question: "Which shape do bees use to make honeycomb?",
+                options: ["Hexagon", "Pentagon", "Octagon", "Square"],
+                correctAnswer: "Hexagon",
+                explanation: "Bees build their honeycomb using <strong>hexagons</strong> (6 sides)! It's the most efficient shape for storing honey.",
+                visual: `<svg viewBox="0 0 150 100" class="w-28 h-16 sm:w-32 sm:h-20"><polygon points="35,10 55,10 65,30 55,50 35,50 25,30" fill="#f1c40f" stroke="#e67e22" stroke-width="2"/><polygon points="65,30 85,30 95,50 85,70 65,70 55,50" fill="#f1c40f" stroke="#e67e22" stroke-width="2"/><polygon points="95,10 115,10 125,30 115,50 95,50 85,30" fill="#f1c40f" stroke="#e67e22" stroke-width="2"/></svg>`
+            },
+            {
+                question: "How many sides does a pentagon have?",
+                options: ["5", "4", "6", "7"],
+                correctAnswer: "5",
+                explanation: "A <strong>pentagon</strong> has <strong>5 sides</strong>. PENTA- means 5!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="50,10 90,40 75,85 25,85 10,40" fill="#6c5ce7" stroke="black" stroke-width="3"/></svg>`
+            },
+            {
+                question: "How many sides does a hexagon have?",
+                options: ["6", "5", "7", "8"],
+                correctAnswer: "6",
+                explanation: "A <strong>hexagon</strong> has <strong>6 sides</strong>. HEXA- means 6!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="30,10 70,10 90,50 70,90 30,90 10,50" fill="#d63031" stroke="black" stroke-width="3"/></svg>`
+            },
+            {
+                question: "How many vertices (corners) does a triangle have?",
+                options: ["3", "4", "2", "5"],
+                correctAnswer: "3",
+                explanation: "A <strong>triangle</strong> has <strong>3 vertices</strong> (corners). The number of vertices matches the number of sides!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="50,15 85,80 15,80" fill="#ffeaa7" stroke="black" stroke-width="3"/><circle cx="50" cy="15" r="6" fill="red"/><circle cx="85" cy="80" r="6" fill="red"/><circle cx="15" cy="80" r="6" fill="red"/></svg>`
+            },
+            {
+                question: "How many right angles does a rectangle have?",
+                options: ["4", "2", "3", "0"],
+                correctAnswer: "4",
+                explanation: "A <strong>rectangle</strong> has <strong>4 right angles</strong> - one at each corner!",
+                visual: `<svg viewBox="0 0 100 80" class="w-24 h-16 sm:w-28 sm:h-20"><rect x="10" y="10" width="80" height="60" fill="#0984e3" stroke="black" stroke-width="3"/><rect x="10" y="10" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="78" y="10" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="10" y="58" width="12" height="12" fill="none" stroke="red" stroke-width="2"/><rect x="78" y="58" width="12" height="12" fill="none" stroke="red" stroke-width="2"/></svg>`
+            },
+            {
+                question: "How many pairs of parallel sides does a parallelogram have?",
+                options: ["2 pairs", "1 pair", "0 pairs", "3 pairs"],
+                correctAnswer: "2 pairs",
+                explanation: "A <strong>parallelogram</strong> has <strong>2 pairs</strong> of parallel sides - that's what makes it a parallelogram!",
+                visual: `<svg viewBox="0 0 100 100" class="w-20 h-20 sm:w-24 sm:h-24"><polygon points="25,20 85,20 75,80 15,80" fill="#fdcb6e" stroke="black" stroke-width="3"/><line x1="25" y1="15" x2="85" y2="15" stroke="red" stroke-width="3"/><line x1="15" y1="85" x2="75" y2="85" stroke="red" stroke-width="3"/></svg>`
+            },
+            {
+                question: "Is every square also a rectangle?",
+                options: ["Yes! A square is a special rectangle", "No, they are completely different", "Only sometimes", "Squares have more sides"],
+                correctAnswer: "Yes! A square is a special rectangle",
+                explanation: "Yes! A <strong>square IS a special rectangle</strong>. Every square is a rectangle, but not every rectangle is a square!",
+                visual: `<div class="flex gap-2 sm:gap-4 items-center"><div class="text-center"><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><rect x="20" y="20" width="60" height="60" fill="#00b894" stroke="black" stroke-width="3"/></svg><div class="text-xs">Square ✓</div></div><div class="text-sm sm:text-lg">is a</div><div class="text-center"><svg viewBox="0 0 100 80" class="w-12 h-10 sm:w-16 sm:h-12"><rect x="10" y="15" width="80" height="50" fill="#0984e3" stroke="black" stroke-width="3"/></svg><div class="text-xs">Rectangle</div></div></div>`
+            },
+            {
+                question: "Is every rhombus also a square?",
+                options: ["No - rhombuses don't always have right angles", "Yes, they are the same", "Rhombuses have more sides", "Only if it's red"],
+                correctAnswer: "No - rhombuses don't always have right angles",
+                explanation: "No! A <strong>rhombus</strong> has 4 equal sides but usually does NOT have right angles. A square is a special rhombus with right angles!",
+                visual: `<div class="flex gap-2 sm:gap-4 items-center"><div class="text-center"><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><polygon points="50,10 80,50 50,90 20,50" fill="#55efc4" stroke="black" stroke-width="3"/></svg><div class="text-xs text-red-500">No right ∠</div></div><div class="text-lg">≠</div><div class="text-center"><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><rect x="25" y="25" width="50" height="50" fill="#00b894" stroke="black" stroke-width="3"/></svg><div class="text-xs text-green-500">Has right ∠</div></div></div>`
+            },
+            {
+                question: "Which shapes have ALL sides equal in length?",
+                options: ["Square and Rhombus", "Rectangle and Trapezoid", "Pentagon and Hexagon", "Only circles"],
+                correctAnswer: "Square and Rhombus",
+                explanation: "Both <strong>squares</strong> and <strong>rhombuses</strong> have 4 sides that are ALL equal!",
+                visual: `<div class="flex gap-2 sm:gap-4 items-center"><svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16"><rect x="20" y="20" width="60" height="60" fill="#00b894" stroke="black" stroke-width="3"/></svg><svg viewBox="0 0 100 100" class="w-12 h-12 sm:w-16 sm:h-16"><polygon points="50,10 80,50 50,90 20,50" fill="#55efc4" stroke="black" stroke-width="3"/></svg></div>`
+            },
+            {
+                question: "What do rectangles, squares, and right triangles have in common?",
+                options: ["They all have at least one right angle", "They all have 4 sides", "They all have equal sides", "They are all circles"],
+                correctAnswer: "They all have at least one right angle",
+                explanation: "They all have <strong>right angles</strong>! Rectangles and squares have 4, and a right triangle has exactly 1.",
+                visual: `<div class="flex flex-wrap gap-1 sm:gap-2 justify-center"><svg viewBox="0 0 100 80" class="w-10 h-10 sm:w-14 sm:h-12"><rect x="10" y="10" width="80" height="60" fill="#0984e3" stroke="black" stroke-width="3"/><rect x="10" y="10" width="10" height="10" fill="none" stroke="red" stroke-width="2"/></svg><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><rect x="25" y="25" width="50" height="50" fill="#00b894" stroke="black" stroke-width="3"/><rect x="25" y="25" width="10" height="10" fill="none" stroke="red" stroke-width="2"/></svg><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-14 sm:h-14"><polygon points="20,80 80,80 20,20" fill="#ffeaa7" stroke="black" stroke-width="3"/><rect x="20" y="68" width="12" height="12" fill="none" stroke="red" stroke-width="2"/></svg></div>`
+            },
+            {
+                question: "Which of these is NOT a quadrilateral?",
+                options: ["Triangle", "Square", "Rectangle", "Trapezoid"],
+                correctAnswer: "Triangle",
+                explanation: "A <strong>triangle</strong> is NOT a quadrilateral because it has only 3 sides. QUAD means 4!",
+                visual: `<div class="flex gap-2 items-center"><div class="text-center border-2 border-red-400 rounded-lg p-1"><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-12 sm:h-12"><polygon points="50,15 85,80 15,80" fill="#ffeaa7" stroke="black" stroke-width="3"/></svg><div class="text-xs text-red-500">3 sides ✗</div></div><div class="text-center"><svg viewBox="0 0 100 100" class="w-10 h-10 sm:w-12 sm:h-12"><rect x="25" y="25" width="50" height="50" fill="#00b894" stroke="black" stroke-width="3"/></svg><div class="text-xs text-green-500">4 sides ✓</div></div></div>`
+            }
+        ];
+
+        // ==================== STATE ====================
+        let currentTab = 'flashcards';
+        
+        // Flashcard state
+        let fcCurrentTarget = null;
+        let fcShapeQueue = [];
+        let fcQuestionsAnswered = 0;
+        let fcCycle = 1;
+        
+        // Quiz state
+        let quizCurrentQuestion = null;
+        let quizQuestionQueue = [];
+        let quizQuestionsAnswered = 0;
+        let quizCycle = 1;
+        let quizAnswered = false;
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            buildReferenceSection();
+            initFlashcards();
+            initQuiz();
+        }
+
+        // ==================== TAB SWITCHING ====================
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-indigo-400');
+            });
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('tab-' + tab).classList.remove('text-indigo-400');
+            
+            document.getElementById('section-flashcards').classList.add('hidden');
+            document.getElementById('section-quiz').classList.add('hidden');
+            document.getElementById('section-reference').classList.add('hidden');
+            document.getElementById('section-' + tab).classList.remove('hidden');
+            document.getElementById('section-' + tab).classList.add('fade-in');
+        }
+
+        // ==================== FLASHCARDS ====================
+        function initFlashcards() {
+            fcShapeQueue = shuffleArray([...shapes]);
+            fcQuestionsAnswered = 0;
+            fcCycle = 1;
+            showNextFlashcard();
+        }
+
+        function showNextFlashcard() {
+            // If queue is empty, reshuffle for new cycle
+            if (fcShapeQueue.length === 0) {
+                fcShapeQueue = shuffleArray([...shapes]);
+                fcCycle++;
+            }
+
+            // Get next shape from queue
+            fcCurrentTarget = fcShapeQueue.shift();
+            
+            const grid = document.getElementById('fc-grid');
+            grid.innerHTML = '';
+            document.getElementById('fc-feedback-text').textContent = '';
+
+            // Update progress
+            const positionInCycle = shapes.length - fcShapeQueue.length;
+            document.getElementById('fc-progress').textContent = `${positionInCycle} / ${shapes.length} (Cycle ${fcCycle})`;
+
+            // Update question display
+            document.getElementById('fc-target-name').textContent = fcCurrentTarget.name;
+            document.getElementById('fc-target-hint').textContent = fcCurrentTarget.hint;
+            document.getElementById('fc-target-memory').textContent = fcCurrentTarget.memory;
+
+            // Get 3 random distractors (not the target)
+            const others = shapes.filter(s => s.id !== fcCurrentTarget.id);
+            const distractors = shuffleArray(others).slice(0, 3);
+            
+            // Combine and shuffle options
+            const options = shuffleArray([fcCurrentTarget, ...distractors]);
+
+            // Create buttons
+            options.forEach(shape => {
+                const btn = document.createElement('button');
+                btn.className = 'shape-btn bg-white rounded-xl shadow-md border-4 border-gray-200 p-3 sm:p-4 flex flex-col items-center justify-center h-28 sm:h-36';
+                btn.innerHTML = `
+                    <div class="w-full h-16 sm:h-20" style="color: ${shape.color}">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">${shape.svg}</svg>
+                    </div>
+                    <span class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2 font-medium">${shape.name}</span>
+                `;
+                btn.onclick = () => handleFlashcardChoice(shape, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function handleFlashcardChoice(shape, btn) {
+            const feedbackEl = document.getElementById('fc-feedback-text');
+            
+            if (shape.id === fcCurrentTarget.id) {
+                // Correct
+                btn.classList.remove('border-gray-200');
+                btn.classList.add('border-green-500', 'bg-green-50');
+                feedbackEl.textContent = '✓ Correct!';
+                feedbackEl.className = 'text-lg sm:text-xl font-bold text-green-600';
+                fcQuestionsAnswered++;
+                
+                setTimeout(showNextFlashcard, 1000);
+            } else {
+                // Incorrect
+                btn.classList.add('border-red-400', 'bg-red-50');
+                feedbackEl.textContent = 'Try again! Read the hint.';
+                feedbackEl.className = 'text-lg sm:text-xl font-bold text-orange-500';
+                
+                setTimeout(() => {
+                    btn.classList.remove('border-red-400', 'bg-red-50');
+                }, 500);
+            }
+        }
+
+        // ==================== QUIZ ====================
+        function initQuiz() {
+            quizQuestionQueue = shuffleArray([...quizQuestions]);
+            quizQuestionsAnswered = 0;
+            quizCycle = 1;
+            showNextQuizQuestion();
+        }
+
+        function showNextQuizQuestion() {
+            quizAnswered = false;
+            
+            // If queue is empty, reshuffle for new cycle
+            if (quizQuestionQueue.length === 0) {
+                quizQuestionQueue = shuffleArray([...quizQuestions]);
+                quizCycle++;
+            }
+
+            // Get next question from queue
+            quizCurrentQuestion = quizQuestionQueue.shift();
+            
+            // Update display
+            quizQuestionsAnswered++;
+            document.getElementById('quiz-num').textContent = quizQuestionsAnswered;
+            document.getElementById('quiz-cycle').textContent = quizCycle;
+            document.getElementById('quiz-remaining').textContent = quizQuestionQueue.length;
+            
+            document.getElementById('quiz-question').textContent = quizCurrentQuestion.question;
+            document.getElementById('quiz-visual').innerHTML = quizCurrentQuestion.visual || '';
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            
+            // Create randomized options with correct answer tracking
+            const optionsWithIndex = quizCurrentQuestion.options.map((opt, i) => ({
+                text: opt,
+                isCorrect: opt === quizCurrentQuestion.correctAnswer
+            }));
+            const shuffledOptions = shuffleArray(optionsWithIndex);
+            
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+            
+            shuffledOptions.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn bg-white rounded-xl shadow-md border-4 border-gray-200 p-3 sm:p-4 text-left font-medium text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 flex items-start gap-2 sm:gap-3';
+                btn.innerHTML = `
+                    <span class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold text-sm sm:text-base flex-shrink-0">${String.fromCharCode(65 + i)}</span>
+                    <span class="text-sm sm:text-base leading-snug pt-0.5">${opt.text}</span>
+                `;
+                btn.dataset.correct = opt.isCorrect;
+                btn.onclick = () => handleQuizAnswer(opt.isCorrect, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleQuizAnswer(isCorrect, btn) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+            
+            const allBtns = document.querySelectorAll('#quiz-options button');
+            
+            allBtns.forEach((b) => {
+                b.classList.remove('hover:border-indigo-300', 'hover:bg-indigo-50');
+                if (b.dataset.correct === 'true') {
+                    b.classList.add('border-green-500', 'bg-green-50');
+                } else if (b === btn && !isCorrect) {
+                    b.classList.add('border-red-400', 'bg-red-50');
+                }
+            });
+            
+            // Show feedback
+            const feedback = document.getElementById('quiz-feedback');
+            const feedbackIcon = document.getElementById('quiz-feedback-icon');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const feedbackExplanation = document.getElementById('quiz-feedback-explanation');
+            
+            if (isCorrect) {
+                feedback.classList.remove('border-red-200');
+                feedback.classList.add('border-green-200');
+                feedbackIcon.textContent = '🎉';
+                feedbackTitle.textContent = 'Correct!';
+                feedbackTitle.className = 'text-lg sm:text-xl font-bold text-green-600';
+            } else {
+                feedback.classList.remove('border-green-200');
+                feedback.classList.add('border-red-200');
+                feedbackIcon.textContent = '🤔';
+                feedbackTitle.textContent = 'Not quite!';
+                feedbackTitle.className = 'text-lg sm:text-xl font-bold text-orange-500';
+            }
+            
+            feedbackExplanation.innerHTML = quizCurrentQuestion.explanation;
+            feedback.classList.remove('hidden');
+            
+            // Scroll to feedback on mobile
+            setTimeout(() => {
+                feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function nextQuizQuestion() {
+            showNextQuizQuestion();
+            // Scroll back to top of quiz section
+            document.getElementById('section-quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ==================== REFERENCE ====================
+        function buildReferenceSection() {
+            const container = document.getElementById('reference-shapes');
+            shapes.forEach(shape => {
+                const card = document.createElement('div');
+                card.className = 'bg-blue-50 rounded-xl p-3 sm:p-4 border-2 border-blue-200';
+                card.innerHTML = `
+                    <div class="flex items-center gap-2 sm:gap-3 mb-2">
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0" style="color: ${shape.color}">
+                            <svg viewBox="0 0 100 100" class="w-full h-full">${shape.svg}</svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-blue-800 text-base sm:text-lg">${shape.name}</h3>
+                            <p class="text-xs sm:text-sm text-blue-600">${shape.sides} sides, ${shape.vertices} vertices</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 text-xs sm:text-sm mb-2">${shape.hint}</p>
+                    <p class="text-green-700 text-xs sm:text-sm"><strong>Remember:</strong> ${shape.memory}</p>
+                    <div class="mt-2 flex flex-wrap gap-1">
+                        ${shape.properties.map(p => `<span class="bg-white px-2 py-0.5 rounded text-xs text-gray-600 border">${p}</span>`).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
